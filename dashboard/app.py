@@ -1156,18 +1156,36 @@ def format_period(period):
 
 @st.cache_data(ttl=300)
 def load_data():
-    password = os.getenv("PGPASSWORD")
+    # Ambil konfigurasi dari environment variable (lokal)
+    # atau Streamlit Secrets (cloud).
+    def get_setting(key, default=None):
+        value = os.getenv(key)
+
+        if value:
+            return value
+
+        try:
+            return st.secrets.get(key, default)
+        except (FileNotFoundError, KeyError):
+            return default
+
+    password = get_setting("PGPASSWORD")
 
     if not password:
         raise ValueError(
-            "PGPASSWORD is not set in the terminal running Streamlit."
+            "Database password belum dikonfigurasi. "
+            "Atur PGPASSWORD di environment lokal "
+            "atau Streamlit Cloud Secrets."
         )
 
     connection = psycopg2.connect(
-        host=os.getenv("PGHOST", "localhost"),
-        port=int(os.getenv("PGPORT", "5432")),
-        dbname=os.getenv("PGDATABASE", "food_price_intelligence"),
-        user=os.getenv("PGUSER", "postgres"),
+        host=get_setting("PGHOST", "localhost"),
+        port=int(get_setting("PGPORT", "5432")),
+        dbname=get_setting(
+            "PGDATABASE",
+            "food_price_intelligence"
+        ),
+        user=get_setting("PGUSER", "postgres"),
         password=password,
         connect_timeout=8,
     )
@@ -1188,9 +1206,15 @@ def load_data():
     finally:
         connection.close()
 
-    data["year"] = pd.to_numeric(data["year"], errors="coerce")
-    data["month_num"] = pd.to_numeric(data["month_num"], errors="coerce")
-    data["price"] = pd.to_numeric(data["price"], errors="coerce")
+    data["year"] = pd.to_numeric(
+        data["year"], errors="coerce"
+    )
+    data["month_num"] = pd.to_numeric(
+        data["month_num"], errors="coerce"
+    )
+    data["price"] = pd.to_numeric(
+        data["price"], errors="coerce"
+    )
 
     data["period"] = pd.to_datetime(
         {
