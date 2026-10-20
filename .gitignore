@@ -1,0 +1,25 @@
+
+# Python cache and virtual environments
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+
+# Secrets and local environment settings
+.env
+.env.*
+!.env.example
+.streamlit/secrets.toml
+
+# Local database and logs
+*.log
+*.dump
+*.backup
+*.sqlite
+*.db
+
+# Editor and operating system files
+.vscode/
+.DS_Store
+Thumbs.db
